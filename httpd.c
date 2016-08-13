@@ -425,6 +425,7 @@ void serve_file(int client, const char *filename)
  * Parameters: pointer to variable containing the port to connect on
  * Returns: the socket */
 /**********************************************************************/
+/**开启函数,监听端口**/
 int startup(u_short *port)
 {
     int httpd = 0;
@@ -479,7 +480,7 @@ void unimplemented(int client)
 }
 
 /**********************************************************************/
-
+/**主入口**/
 int main(void)
 {
     int server_sock = -1;
