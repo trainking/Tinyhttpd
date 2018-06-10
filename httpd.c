@@ -431,6 +431,9 @@ int startup(u_short *port)
     int httpd = 0;
     struct sockaddr_in name;
 
+    /**建立一个套接字，AF_INET与PF_INET一致，表示IPv4因特网网域**/
+    /**第二个参数是确定套接字类型，SOCK_STREAM 是有序的，可靠的，双向的，面向连接的字节流，这符合http连接的特征**/
+    /**第三个参数表示选定的协议，默认为0，表示为默认协议，如果可以使用多个协议时，通过这个参数来控制协议的选择，PF_INET中，默认协议为TCP**/
     httpd = socket(PF_INET, SOCK_STREAM, 0);
     if (httpd == -1)
         error_die("socket");
@@ -490,7 +493,7 @@ int main(void)
     socklen_t  client_name_len = sizeof(client_name);
     pthread_t newthread;
 
-    server_sock = startup(&port);
+    server_sock = startup(&port);  /**监听端口**/
     printf("httpd running on port %d\n", port);
 
     while (1)
@@ -501,7 +504,7 @@ int main(void)
         if (client_sock == -1)
             error_die("accept");
         /* accept_request(client_sock); */
-        if (pthread_create(&newthread , NULL, (void *)accept_request, (void *)&client_sock) != 0)
+        if (pthread_create(&newthread , NULL, (void *)accept_request, (void *)&client_sock) != 0)  // 创建线程
             perror("pthread_create");
     }
 
