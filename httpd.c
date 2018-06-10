@@ -425,7 +425,7 @@ void serve_file(int client, const char *filename)
  * Parameters: pointer to variable containing the port to connect on
  * Returns: the socket */
 /**********************************************************************/
-/**开启函数,监听端口**/
+/**开启函数,监听端口，整个步骤就是寻址，然后建立监听的过程，开启服务端进程的过程**/
 int startup(u_short *port)
 {
     int httpd = 0;
@@ -437,9 +437,13 @@ int startup(u_short *port)
     httpd = socket(PF_INET, SOCK_STREAM, 0);
     if (httpd == -1)
         error_die("socket");
+    /**清空sockaddr_in的缓存区，通过给这个值赋予0**/
     memset(&name, 0, sizeof(name));
+    /**给sockaddr_in重新赋值**/
     name.sin_family = AF_INET;
+    /**字节序转换，将 *port 转换为网络字节序表示的16位整数**/
     name.sin_port = htons(*port);
+    /**字节序转换，将 INADDR_ANY转换为网络字节序的32位整数*/
     name.sin_addr.s_addr = htonl(INADDR_ANY);
     if (bind(httpd, (struct sockaddr *)&name, sizeof(name)) < 0)
         error_die("bind");
@@ -448,6 +452,7 @@ int startup(u_short *port)
         socklen_t namelen = sizeof(name);
         if (getsockname(httpd, (struct sockaddr *)&name, &namelen) == -1)
             error_die("getsockname");
+        /**将网络字节序转换为主机字节序 16位**/
         *port = ntohs(name.sin_port);
     }
     if (listen(httpd, 5) < 0)
@@ -498,6 +503,9 @@ int main(void)
 
     while (1)
     {
+        /**accpet 函数用来获取连接并建立连接，其中第一个参数，传入原始套接字，即服务器套接字，第二个参数是获取地址的缓存区，建立到sockaddr_in，第三个参数是地址的长度**/
+        /**返回时，会更新缓存区，保存地址，更新第三个参数，反应参数长度**/
+        /**这一步是服务端向客户端发起请求，建立一个完整的连接**/
         client_sock = accept(server_sock,
                 (struct sockaddr *)&client_name,
                 &client_name_len);
@@ -508,6 +516,7 @@ int main(void)
             perror("pthread_create");
     }
 
+    /**释放套接字**/
     close(server_sock);
 
     return(0);
