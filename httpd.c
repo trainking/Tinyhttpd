@@ -429,6 +429,9 @@ void serve_file(int client, const char *filename)
 int startup(u_short *port)
 {
     int httpd = 0;
+    /**在AF_INET中，套接字地址用sockadd_in表示，sockaddr是通用的地址结构**/
+    /**这个结构体包含三个参数，sin_family协议类型，sin_port端口，sin_addrIPV4协议地址**/
+    /**sin_addr是一个结构体，只有一个成员s_addr**/
     struct sockaddr_in name;
 
     /**建立一个套接字，AF_INET与PF_INET一致，表示IPv4因特网网域**/
@@ -440,10 +443,13 @@ int startup(u_short *port)
     /**清空sockaddr_in的缓存区，通过给这个值赋予0**/
     memset(&name, 0, sizeof(name));
     /**给sockaddr_in重新赋值**/
+    /**协议族**/
     name.sin_family = AF_INET;
     /**字节序转换，将 *port 转换为网络字节序表示的16位整数**/
+    /**端口，这个in_port_t的定义，是uint16_t，即2字节的无符号整型**/
     name.sin_port = htons(*port);
     /**字节序转换，将 INADDR_ANY转换为网络字节序的32位整数*/
+    /**这个s_addr的定义in_addr_t，是uint32_t，即4字节无符号整型**/
     name.sin_addr.s_addr = htonl(INADDR_ANY);
     if (bind(httpd, (struct sockaddr *)&name, sizeof(name)) < 0)
         error_die("bind");
