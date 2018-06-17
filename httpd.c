@@ -9,7 +9,7 @@
  *  1) Comment out the #include <pthread.h> line.
  *  2) Comment out the line that defines the variable newthread.
  *  3) Comment out the two lines that run pthread_create().
- *  4) Uncomment the line that runs accept_request().
+ *  4) Uncomment the line that runsaccept_request().
  *  5) Remove -lsocket from the Makefile.
  */
 #include <stdio.h>
@@ -51,11 +51,15 @@ void unimplemented(int);
  * return.  Process the request appropriately.
  * Parameters: the socket connected to the client */
 /**********************************************************************/
+/**处理请求**/
 void accept_request(void *arg)
 {
     int client = *(int*)arg;
+    /**建立一个缓存区获取数据**/
     char buf[1024];
+    /**size_t 是一个无符号长整型，它是用来记录一个大小的类型**/
     size_t numchars;
+    /**HTTP请求的几个重要数据，请求方法，URL，路径**/
     char method[255];
     char url[255];
     char path[512];
@@ -65,8 +69,10 @@ void accept_request(void *arg)
                        * program */
     char *query_string = NULL;
 
+    /**获取http请求报文的第一行**/
     numchars = get_line(client, buf, sizeof(buf));
     i = 0; j = 0;
+    // 取出请求方法
     while (!ISspace(buf[i]) && (i < sizeof(method) - 1))
     {
         method[i] = buf[i];
@@ -75,6 +81,7 @@ void accept_request(void *arg)
     j=i;
     method[i] = '\0';
 
+    /**strcasecmp判断字符串相等**/
     if (strcasecmp(method, "GET") && strcasecmp(method, "POST"))
     {
         unimplemented(client);
@@ -310,6 +317,7 @@ void execute_cgi(int client, const char *path,
  *             the size of the buffer
  * Returns: the number of bytes stored (excluding null) */
 /**********************************************************************/
+/**从一个socke中获取一行数据，返回这行数据大小，并把它写入到buf缓存区中**/
 int get_line(int sock, char *buf, int size)
 {
     int i = 0;
@@ -472,6 +480,7 @@ int startup(u_short *port)
  * implemented.
  * Parameter: the client socket */
 /**********************************************************************/
+/**发送方法未实现的报文**/
 void unimplemented(int client)
 {
     char buf[1024];
