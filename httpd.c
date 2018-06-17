@@ -447,6 +447,7 @@ int startup(u_short *port)
     name.sin_family = AF_INET;
     /**字节序转换，将 *port 转换为网络字节序表示的16位整数**/
     /**端口，这个in_port_t的定义，是uint16_t，即2字节的无符号整型**/
+    /**字节序的转换，因为TCP网络用的大端序，但大部分主机都是小端序的，所以为了解决字节序的问题，引入ht**()主机序转网络序，引入nt**()网络序转主机序**/
     name.sin_port = htons(*port);
     /**字节序转换，将 INADDR_ANY转换为网络字节序的32位整数*/
     /**这个s_addr的定义in_addr_t，是uint32_t，即4字节无符号整型**/
