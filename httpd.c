@@ -12,6 +12,10 @@
  *  4) Uncomment the line that runsaccept_request().
  *  5) Remove -lsocket from the Makefile.
  */
+ /**
+ * 头文件定义引用的类型，和调用的函数
+ * + stdio.h 定义了C99标准的类型，如int_32_t表示32位有符号整数类型，是int的别名
+ */
 #include <stdio.h>
 #include <sys/socket.h>
 #include <sys/types.h>
@@ -101,13 +105,16 @@ void accept_request(void *arg)
         url[i] = buf[j];
         i++; j++;
     }
+    // 在URL的最后加上一个\0用来判断
     url[i] = '\0';
 
     if (strcasecmp(method, "GET") == 0)
     {
+        // 通过指针来便利数组
         query_string = url;
         while ((*query_string != '?') && (*query_string != '\0'))
             query_string++;
+        //定位到"?"出现的未知，将cgi设为true，并且这一位用'\0'代替
         if (*query_string == '?')
         {
             cgi = 1;
@@ -117,8 +124,10 @@ void accept_request(void *arg)
     }
 
     sprintf(path, "htdocs%s", url);
+    // 找出最后路由的文件地址，如果没有则指定到index.html
     if (path[strlen(path) - 1] == '/')
         strcat(path, "index.html");
+    // 文件未找到则返回404
     if (stat(path, &st) == -1) {
         while ((numchars > 0) && strcmp("\n", buf))  /* read & discard headers */
             numchars = get_line(client, buf, sizeof(buf));
@@ -126,15 +135,21 @@ void accept_request(void *arg)
     }
     else
     {
+        // 正常响应
+        // 判断文件如果是文件夹则重定向index
         if ((st.st_mode & S_IFMT) == S_IFDIR)
             strcat(path, "/index.html");
+        // 判断文件是否有用户，用户组，其他人是否有执行权限，有则执行cgi为1
         if ((st.st_mode & S_IXUSR) ||
                 (st.st_mode & S_IXGRP) ||
                 (st.st_mode & S_IXOTH)    )
             cgi = 1;
+        // cgi为空的情况下，拼装报文响应
         if (!cgi)
+            // 发送静态报文
             serve_file(client, path);
         else
+            // 执行cgi
             execute_cgi(client, path, method, query_string);
     }
 
@@ -145,6 +160,7 @@ void accept_request(void *arg)
 /* Inform the client that a request it has made has a problem.
  * Parameters: client socket */
 /**********************************************************************/
+// 错误的相应消息
 void bad_request(int client)
 {
     char buf[1024];
@@ -215,12 +231,13 @@ void error_die(const char *sc)
  * Parameters: client socket descriptor
  *             path to the CGI script */
 /**********************************************************************/
+// 执行cgi
 void execute_cgi(int client, const char *path,
         const char *method, const char *query_string)
 {
-    char buf[1024];
-    int cgi_output[2];
-    int cgi_input[2];
+    char buf[1024];   // 缓冲区
+    int cgi_output[2];   // cgi的输出
+    int cgi_input[2];    // cgi的输入
     pid_t pid;
     int status;
     int i;
@@ -234,6 +251,7 @@ void execute_cgi(int client, const char *path,
             numchars = get_line(client, buf, sizeof(buf));
     else if (strcasecmp(method, "POST") == 0) /*POST*/
     {
+        // post 请求从body中读出数据
         numchars = get_line(client, buf, sizeof(buf));
         while ((numchars > 0) && strcmp("\n", buf))
         {
@@ -375,6 +393,7 @@ void headers(int client, const char *filename)
 /**********************************************************************/
 /* Give a client a 404 not found status message. */
 /**********************************************************************/
+// 404未找到响应
 void not_found(int client)
 {
     char buf[1024];
